@@ -395,7 +395,6 @@ function decryptAPK(encrypted, key) {
 // 2) وصل MongoDB وتعريف الموديل
 mongoose.connect(
   'mongodb+srv://mfloor35:8TdY7ofdkjVhVIPd@mfloors.fbq2ulk.mongodb.net/?retryWrites=true&w=majority&appName=Mfloors',
-  { useNewUrlParser: true, useUnifiedTopology: true }
 )
 .then(() => console.log('✅ MongoDB متصل بنجاح'))
 .catch(err => console.error('❌ فشل الاتصال ب MongoDB:', err));
