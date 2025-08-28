@@ -78,6 +78,7 @@ const categories = {
   c1: false,
   c2: false,
   c3: false,
+  an: false,
   stdtan: false
 };
 
