@@ -49,7 +49,7 @@ const clients = [
   //{ user: "ADMINSELFAI", password: "ADMINSELFAI" },//2025-05-26
   //{ user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
   //{ user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
- //{ user: "AZIZ", password: "AZIZ" },
+ { user: "AZIZ", password: "AZIZ" },
  // { user: "MONIRE", password: "MONIRE" },
   //{ user: "chahir1", password: "chahir1" },
   //{ user: "BAKHIRA-V2", password: "SELFAI-V2" },
