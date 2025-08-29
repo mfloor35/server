@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 
 
-
+ 
 // تعريف نموذج المستخدم User Schema
 const userSchema = new mongoose.Schema({
   user: String,
@@ -45,14 +45,16 @@ const User = mongoose.model('User', userSchema);
 const clients = [
   { user: "BADR1", password: "MILYOUDAS-V4" },//2025-05-18
   //{ user: "PRFOE", password: "MILYOUDAS-V5" },//2025-05-29
- // { user: "PROFE", password: "MILYOUDAS-V5" },//2025-05-29
+  // { user: "PROFE", password: "MILYOUDAS-V5" },//2025-05-29
   //{ user: "ADMINSELFAI", password: "ADMINSELFAI" },//2025-05-26
-//  { user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
-//  { user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
-  { user: "AZIZ", password: "AZIZ" },
-  { user: "MONIRE", password: "MONIRE" },
-  { user: "chahir1", password: "chahir1" },
-  { user: "BAKHIRA-V2", password: "SELFAI-V2" }
+  //{ user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
+  //{ user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
+ //{ user: "AZIZ", password: "AZIZ" },
+ // { user: "MONIRE", password: "MONIRE" },
+  //{ user: "chahir1", password: "chahir1" },
+  //{ user: "BAKHIRA-V2", password: "SELFAI-V2" },
+  { user: "BILAL", password: "BILAL" },
+  { user: "PROF", password: "PROF" }
 ]
 
 
@@ -70,16 +72,20 @@ const timers = {};
 //    تقدر تزيد أو تنقص حسب الـ keys اللي عندك.
 // ─────────────────────────────────────────────────────────────────
 const categories = {
-  sch: false,
-  std: false,
+  sch : false,
+  std : false,
   famr: false,
-  nat: false,
+  nat : false,
   work: false,
-  c1: false,
-  c2: false,
-  c3: false,
-  an: false,
-  stdtan: false
+  c1  : false,
+  c2  : false,
+  c3  : false,
+  stdtan: false,
+  c2rba: false,
+  w  : false,
+  t  : false,
+  j  : false,
+  an : false,
 };
 
 // ───────────────────────────────────────────────────────────────
@@ -133,9 +139,6 @@ app.get('/check', (req, res) => {
     return res.status(500).json({ status: 'inactive' });
   }
 });
-
-
-
 
 
 
