@@ -348,6 +348,9 @@ app.get('/api/status', (req, res) => {
 
 
 
+app.get('/active', (req, res) => {
+  res.status(200).json({ success: true, message: "Active ping reçu ✅" });
+});
 
 
 
