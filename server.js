@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 
 
- 
+
 // تعريف نموذج المستخدم User Schema
 const userSchema = new mongoose.Schema({
   user: String,
@@ -45,20 +45,20 @@ const User = mongoose.model('User', userSchema);
 const clients = [
   { user: "BADR1", password: "MILYOUDAS-V4" },//2025-05-18
   //{ user: "PRFOE", password: "MILYOUDAS-V5" },//2025-05-29
-  // { user: "PROFE", password: "MILYOUDAS-V5" },//2025-05-29
+ // { user: "PROFE", password: "MILYOUDAS-V5" },//2025-05-29
   //{ user: "ADMINSELFAI", password: "ADMINSELFAI" },//2025-05-26
-  //{ user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
-  //{ user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
- { user: "AZIZ", password: "AZIZ" },
- // { user: "MONIRE", password: "MONIRE" },
-  //{ user: "chahir1", password: "chahir1" },
-  //{ user: "BAKHIRA-V2", password: "SELFAI-V2" },
-  { user: "BILAL", password: "BILAL" },
-  { user: "PROF", password: "PROF" }
+//  { user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
+//  { user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
+  { user: "AZIZ", password: "AZIZ" },
+//  { user: "MONIRE", password: "MONIRE" },
+//  { user: "chahir1", password: "chahir1" },
+ // { user: "BAKHIRA-V2", password: "SELFAI-V2" }
 ]
 
 
 
+// اللّيستيّا ديال الكاتيگوري الصالحة
+const VALID_CATEGORIES = ['n','sch','std','famr','nat','work','c1','c2','c3'];
 
 // خزين الحالة (true/false) لكل كاتيگوري
 const flags = {};
@@ -66,79 +66,10 @@ const flags = {};
 const timers = {};
 
 
-// ─────────────────────────────────────────────────────────────────
-// 1) هنا غنخلقو كائن JavaScript فـ الذاكرة باش نخزن الحالة لكل كاتيجوري
-//     ابتدائياً كلهم False.
-//    تقدر تزيد أو تنقص حسب الـ keys اللي عندك.
-// ─────────────────────────────────────────────────────────────────
-const categories = {
-  sch : false,
-  std : false,
-  famr: false,
-  nat : false,
-  work: false,
-  c1  : false,
-  c2  : false,
-  c3  : false,
-  stdtan: false,
-  c2rba: false,
-  w  : false,
-  t  : false,
-  j  : false,
-  an : false,
-};
 
-// ───────────────────────────────────────────────────────────────
-// 2) دالة مساعد لتحويل أي قيمة كاتيجوري (string) للإسم الصحيح
-//    غادي ناخدو اسم الكاتيجوري من query param أو من route.
-// ───────────────────────────────────────────────────────────────
-function normalizeKey(key) {
-  // نردّوها lowercase بلا مسافات
-  return key ? key.toString().trim().toLowerCase() : '';
-}
 
-// ───────────────────────────────────────────────────────────────
-// 3) Endpoint: GET /activate?cat=sch
-//    → كيحط الكاتيجوري = true ويحط Timer لمدة دقيقة باش يرجعو false.
-// ───────────────────────────────────────────────────────────────
-app.get('/activate', (req, res) => {
-  const catKey = normalizeKey(req.query.cat);
-  if (!catKey || !(catKey in categories)) {
-    return res.status(400).json({ error: 'category invalid or missing' });
-  }
 
-  // وَضِّع القيمة true
-  categories[catKey] = true;
 
-  // حدّد الوقت ديال دقيقة واحدة
-  setTimeout(() => {
-    categories[catKey] = false;
-    console.log(`Category "${catKey}" set back to false after 1 minute`);
-  }, 60 * 1000);
-
-  console.log(`Category "${catKey}" activated (true)`);
-  return res.status(200).json({ message: `Category "${catKey}" is now active for 1 minute` });
-});
-
-// ───────────────────────────────────────────────────────────────
-// 4) Endpoint: GET /check?cat=sch
-//    → كيشيك واش الكاتيجوري = true أو false.
-//    → إلا true: يردّ status 200، وإلا 500.
-// ───────────────────────────────────────────────────────────────
-app.get('/check', (req, res) => {
-  const catKey = normalizeKey(req.query.cat);
-  if (!catKey || !(catKey in categories)) {
-    return res.status(400).json({ error: 'category invalid or missing' });
-  }
-
-  if (categories[catKey]) {
-    // كيكون ما زال فعّال
-    return res.status(200).json({ status: 'active' });
-  } else {
-    // منتهي أو عمّر متفعّل من الأساس
-    return res.status(500).json({ status: 'inactive' });
-  }
-});
 
 
 
@@ -360,9 +291,58 @@ app.post('/api/authorize', async (req, res) => {
 
 
 
+// API 1: يفعّل flag لكل كاتيگوري ويرجّعو False بعد دقيقة
+app.post('/api/activate', (req, res) => {
+  // ناخدو category يا إمّا من body.category يا من body.data إذا ما بدّلناش الكلاينت
+  const category = req.body.category ?? req.body.data;
+
+  // Validation: واش هادي كاتيگوري مسموح بها؟
+  if (!VALID_CATEGORIES.includes(category)) {
+    return res.status(400).json({ 
+      error: 'Invalid category', 
+      allowed: VALID_CATEGORIES 
+    });
+  }
+
+  // إذا الحالة ديال هاد الكاتيگوري ما مسجّلة، نعطيوها False كبداية
+  if (!(category in flags)) {
+    flags[category] = false;
+  }
+
+  if (!flags[category]) {
+    // نفعّلو flag
+    flags[category] = true;
+
+    // نحيدو أي timeout قديم
+    if (timers[category]) {
+      clearTimeout(timers[category]);
+    }
+    // نرجّعو flag لـ False بعد دقيقة (60,000 ملّي ثانية)
+    timers[category] = setTimeout(() => {
+      flags[category] = false;
+      delete timers[category];
+    }, 1 * 60 * 1000); // 1 دقيقة
+
+  } 
+  // نرجّعو النتيجة
+  return res.json({ category, flag: flags[category] });
+});
 
 
 
+
+
+
+
+
+app.get('/api/status', (req, res) => {
+  const { category } = req.query;
+  if (!VALID_CATEGORIES.includes(category)) {
+    return res.status(400).json({ error: 'Invalid category', allowed: VALID_CATEGORIES });
+  }
+  const flagValue = flags[category] || false;
+  return res.json({ category, flag: flagValue });
+});
 
 
 
@@ -398,7 +378,8 @@ function decryptAPK(encrypted, key) {
 
 // 2) وصل MongoDB وتعريف الموديل
 mongoose.connect(
-  'mongodb+srv://mfloor35:8TdY7ofdkjVhVIPd@mfloors.fbq2ulk.mongodb.net/?retryWrites=true&w=majority&appName=Mfloors',
+  'mongodb+srv://aymanamrani1221:baayah1221@myapi.nbk6z.mongodb.net/?retryWrites=true&w=majority&appName=myapi',
+  { useNewUrlParser: true, useUnifiedTopology: true }
 )
 .then(() => console.log('✅ MongoDB متصل بنجاح'))
 .catch(err => console.error('❌ فشل الاتصال ب MongoDB:', err));
