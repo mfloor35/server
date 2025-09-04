@@ -348,12 +348,39 @@ app.get('/api/status', (req, res) => {
 
 
 
-app.get('/active', (req, res) => {
-  res.status(200).json({ success: true, message: "Active ping reçu ✅" });
+
+
+
+
+// Nouveau modèle pour stocker les "activations"
+const ActiveSchema = new mongoose.Schema({
+  page: String,
+  timestamp: { type: Date, default: Date.now }
+});
+const Active = mongoose.model("Active", ActiveSchema);
+
+// Endpoint pour enregistrer l’activation
+app.post("/active", async (req, res) => {
+  try {
+    const { page, timestamp } = req.body;
+    const doc = await Active.create({ page, timestamp });
+    return res.status(200).json({ success: true, id: doc._id });
+  } catch (err) {
+    console.error("Erreur /active:", err);
+    return res.status(500).json({ success: false });
+  }
 });
 
-
-
+// Endpoint pour vérifier la dernière activation
+app.get("/active", async (req, res) => {
+  try {
+    const last = await Active.findOne().sort({ timestamp: -1 }).lean();
+    return res.json({ last });
+  } catch (err) {
+    console.error("Erreur GET /active:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 
