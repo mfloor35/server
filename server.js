@@ -111,10 +111,10 @@ app.get('/activate', (req, res) => {
   // حدّد الوقت ديال دقيقة واحدة
   setTimeout(() => {
     categories[catKey] = false;
-  //  console.log(`Category "${catKey}" set back to false after 1 minute`);
+    console.log(`Category "${catKey}" set back to false after 1 minute`);
   }, 60 * 1000);
 
-//  console.log(`Category "${catKey}" activated (true)`);
+  console.log(`Category "${catKey}" activated (true)`);
   return res.status(200).json({ message: `Category "${catKey}" is now active for 1 minute` });
 });
 
@@ -396,17 +396,17 @@ app.post("/active", async (req, res) => {
 
     // 🚦 2) تفعيل الـ flag لمدة 3 ثواني
     siteIsActive = true;
-    console.log("✅ /active reçu → siteIsActive = true");
+  //  console.log("✅ /active reçu → siteIsActive = true");
 
     setTimeout(() => {
       siteIsActive = false;
-      console.log("ℹ️ siteIsActive reset → false");
+     // console.log("ℹ️ siteIsActive reset → false");
     }, 3 * 1000);
 
     // 🔙 3) الرد
     return res.status(200).json({ success: true, id: doc._id });
   } catch (err) {
-    console.error("Erreur /active:", err);
+  //  console.error("Erreur /active:", err);
     return res.status(500).json({ success: false });
   }
 });
