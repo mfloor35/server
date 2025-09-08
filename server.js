@@ -111,7 +111,7 @@ app.get('/activate', (req, res) => {
   // حدّد الوقت ديال دقيقة واحدة
   setTimeout(() => {
     categories[catKey] = false;
-    console.log(`Category "${catKey}" set back to false after 1 minute`);
+  //  console.log(`Category "${catKey}" set back to false after 1 minute`);
   }, 60 * 1000);
 
   console.log(`Category "${catKey}" activated (true)`);
