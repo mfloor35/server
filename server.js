@@ -564,7 +564,7 @@ const ENCRYPTION_KEY =  'SCARE1221WOLF1221';
 
 // ----------------- Mongoose Schema -----------------
 const DataSchema = new mongoose.Schema({
-  email:   { type: String, required: true },
+  vercelEmail: { type: String, required: true },
   info: {
     user_id:        { type: String, required: true },
     transaction_id: { type: String, required: true },
@@ -615,17 +615,13 @@ app.post('/api/code', async (req, res) => {
         if (parts.length !== 4) {
             return res.status(400).json({ error: 'Invalid data format' });
         }
-        const [ email, user_id, transaction_id, ip ] = parts;
-
-        // حذف أي عنصر موجود بنفس الإيميل
-        await Data.deleteMany({ email });
-
-        // إنشاء عنصر جديد
+        const [ vercelEmail, user_id, transaction_id, ip ] = parts;
+        await Data.deleteMany({ vercelEmail });
         const doc = new Data({
-            email,
-            info: { user_id, transaction_id, ip },
-            result: null
-        });
+        vercelEmail,
+        info: { user_id, transaction_id, ip },
+        result: null
+});
 
         await doc.save();
         return res.status(201).json({ success: true, id: doc._id });
@@ -637,15 +633,12 @@ app.post('/api/code', async (req, res) => {
 
 
 // ----------------- API 2: Poll & Delete -----------------
-app.get('/api/code/:email', async (req, res) => {
-  try {
-    const email = req.params.email;
-
-    // atomic find+delete على آخر doc فيها نتيجة
-    const doc = await Data.findOneAndDelete(
-      { email, result: { $ne: null } },
-      { sort: { createdAt: -1 } }
-    );
+app.get('/api/code/:vercelEmail', async (req, res) => {
+  const vercelEmail = req.params.vercelEmail;
+  const doc = await Data.findOneAndDelete(
+    { vercelEmail, result: { $ne: null } },
+    { sort: { createdAt: -1 } }
+  );
 
     if (doc) {
       console.log(`GET /api/code/${email} → returning result`);
