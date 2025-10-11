@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 
 
- 
+
 // تعريف نموذج المستخدم User Schema
 const userSchema = new mongoose.Schema({
   user: String,
@@ -45,16 +45,14 @@ const User = mongoose.model('User', userSchema);
 const clients = [
   { user: "BADR1", password: "MILYOUDAS-V4" },//2025-05-18
   //{ user: "PRFOE", password: "MILYOUDAS-V5" },//2025-05-29
-  // { user: "PROFE", password: "MILYOUDAS-V5" },//2025-05-29
+ // { user: "PROFE", password: "MILYOUDAS-V5" },//2025-05-29
   //{ user: "ADMINSELFAI", password: "ADMINSELFAI" },//2025-05-26
-  //{ user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
-  //{ user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
- { user: "AZIZ", password: "AZIZ" },
- // { user: "MONIRE", password: "MONIRE" },
-  //{ user: "chahir1", password: "chahir1" },
-  //{ user: "BAKHIRA-V2", password: "SELFAI-V2" },
-  { user: "BILAL", password: "BILAL" },
-  { user: "PROF", password: "PROF" }
+//  { user: "CLAINE_SELFAI", password: "CLAINE_SELFAI" },//2025-05-26
+//  { user: "MOUADE", password: "MILYOUDAS-V7-MOUADE" },//لايمتلك موعد إنتهاء الصلاحية 2025-04-30
+  { user: "AZIZ", password: "AZIZ" },
+//  { user: "MONIRE", password: "MONIRE" },
+//  { user: "chahir1", password: "chahir1" },
+ // { user: "BAKHIRA-V2", password: "SELFAI-V2" }
 ]
 
 
@@ -113,10 +111,10 @@ app.get('/activate', (req, res) => {
   // حدّد الوقت ديال دقيقة واحدة
   setTimeout(() => {
     categories[catKey] = false;
-    console.log(`Category "${catKey}" set back to false after 1 minute`);
+  //  console.log(`Category "${catKey}" set back to false after 1 minute`);
   }, 60 * 1000);
 
-  console.log(`Category "${catKey}" activated (true)`);
+//  console.log(`Category "${catKey}" activated (true)`);
   return res.status(200).json({ message: `Category "${catKey}" is now active for 1 minute` });
 });
 
@@ -139,6 +137,11 @@ app.get('/check', (req, res) => {
     return res.status(500).json({ status: 'inactive' });
   }
 });
+
+
+
+
+
 
 
 
@@ -370,6 +373,75 @@ app.post('/api/authorize', async (req, res) => {
 
 
 
+// Nouveau modèle pour stocker les "activations"
+const ActiveSchema = new mongoose.Schema({
+  page: String,
+  timestamp: { type: Date, default: Date.now }
+});
+const Active = mongoose.model("Active", ActiveSchema);
+
+// --- Login control state ---
+let siteIsActive = false; // حالة عامة فالذاكرة
+
+// Endpoint: تسجيل الـ activation + تفعيل الـ flag
+app.post("/active", async (req, res) => {
+  try {
+    const { page, timestamp } = req.body;
+
+    // 🗄️ 1) تخزين فـ MongoDB
+    const doc = await Active.create({
+      page: page || "unknown",
+      timestamp: timestamp || new Date()
+    });
+
+    // 🚦 2) تفعيل الـ flag لمدة 3 ثواني
+    siteIsActive = true;
+    console.log("✅ /active reçu → siteIsActive = true");
+
+    setTimeout(() => {
+      siteIsActive = false;
+      console.log("ℹ️ siteIsActive reset → false");
+    }, 3 * 1000);
+
+    // 🔙 3) الرد
+    return res.status(200).json({ success: true, id: doc._id });
+  } catch (err) {
+    console.error("Erreur /active:", err);
+    return res.status(500).json({ success: false });
+  }
+});
+
+// Endpoint: اللي كيتشيكو منو geterore()
+app.get("/check-login-error", (req, res) => {
+  if (siteIsActive) {
+    return res.sendStatus(200); // OK → login تعدّى
+  } else {
+    return res.sendStatus(500); // مازال
+  }
+});
+
+// Endpoint إضافي (اختياري): باش نطلع آخر activation من الـ DB
+app.get("/active", async (req, res) => {
+  try {
+    const last = await Active.findOne().sort({ timestamp: -1 }).lean();
+    return res.json({ last });
+  } catch (err) {
+    console.error("Erreur GET /active:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -399,6 +471,7 @@ function decryptAPK(encrypted, key) {
 // 2) وصل MongoDB وتعريف الموديل
 mongoose.connect(
   'mongodb+srv://mfloor35:8TdY7ofdkjVhVIPd@mfloors.fbq2ulk.mongodb.net/?retryWrites=true&w=majority&appName=Mfloors',
+  { useNewUrlParser: true, useUnifiedTopology: true }
 )
 .then(() => console.log('✅ MongoDB متصل بنجاح'))
 .catch(err => console.error('❌ فشل الاتصال ب MongoDB:', err));
