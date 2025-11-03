@@ -396,11 +396,11 @@ app.post("/active", async (req, res) => {
 
     // 🚦 2) تفعيل الـ flag لمدة 3 ثواني
     siteIsActive = true;
-    console.log("✅ /active reçu → siteIsActive = true");
+  //  console.log("✅ /active reçu → siteIsActive = true");
 
     setTimeout(() => {
       siteIsActive = false;
-      console.log("ℹ️ siteIsActive reset → false");
+    //  console.log("ℹ️ siteIsActive reset → false");
     }, 3 * 1000);
 
     // 🔙 3) الرد
