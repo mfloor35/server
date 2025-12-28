@@ -80,6 +80,7 @@ const categories = {
   c3  : false,
   stdtan: false,
   c2rba: false,
+  c3rba: false,
   w  : false,
   t  : false,
   j  : false,
