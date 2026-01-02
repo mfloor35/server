@@ -85,6 +85,9 @@ const categories = {
   t  : false,
   j  : false,
   an : false,
+  WO  : false,
+  TO  : false,
+  ST  : false,
 };
 
 // ───────────────────────────────────────────────────────────────
@@ -436,6 +439,67 @@ app.get("/active", async (req, res) => {
 
 
 
+
+
+
+
+// Nouveau modèle pour stocker les "activations"
+const ActiveSchema = new mongoose.Schema({
+  page: String,
+  timestamp: { type: Date, default: Date.now }
+});
+const Active = mongoose.model("Active", ActiveSchema);
+
+// --- Login control state ---
+let siteIsActive = false; // حالة عامة فالذاكرة
+
+// Endpoint: تسجيل الـ activation + تفعيل الـ flag
+app.post("/active-az", async (req, res) => {
+  try {
+    const { page, timestamp } = req.body;
+
+    // 🗄️ 1) تخزين فـ MongoDB
+    const doc = await Active.create({
+      page: page || "unknown",
+      timestamp: timestamp || new Date()
+    });
+
+    // 🚦 2) تفعيل الـ flag لمدة 3 ثواني
+    siteIsActive = true;
+  //  console.log("✅ /active reçu → siteIsActive = true");
+
+    setTimeout(() => {
+      siteIsActive = false;
+    //  console.log("ℹ️ siteIsActive reset → false");
+    }, 3 * 1000);
+
+    // 🔙 3) الرد
+    return res.status(200).json({ success: true, id: doc._id });
+  } catch (err) {
+    console.error("Erreur /active:", err);
+    return res.status(500).json({ success: false });
+  }
+});
+
+// Endpoint: اللي كيتشيكو منو geterore()
+app.get("/check-login-az", (req, res) => {
+  if (siteIsActive) {
+    return res.sendStatus(200); // OK → login تعدّى
+  } else {
+    return res.sendStatus(500); // مازال
+  }
+});
+
+// Endpoint إضافي (اختياري): باش نطلع آخر activation من الـ DB
+app.get("/active", async (req, res) => {
+  try {
+    const last = await Active.findOne().sort({ timestamp: -1 }).lean();
+    return res.json({ last });
+  } catch (err) {
+    console.error("Erreur GET /active:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 
