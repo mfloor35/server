@@ -85,9 +85,9 @@ const categories = {
   t  : false,
   j  : false,
   an : false,
-  WO  : false,
-  TO  : false,
-  ST  : false,
+  wo  : false,
+  to  : false,
+  st  : false,
 };
 
 // ───────────────────────────────────────────────────────────────
