@@ -597,15 +597,13 @@ app.get('/telemetry', async (req, res) => {
 
 
 
-
-
 const ENCRYPTION_KEY =  'SCARE1221WOLF1221';
 
 // ----------------- Init -----------------
 
 // ----------------- Mongoose Schema -----------------
 const DataSchema = new mongoose.Schema({
-  email:   { type: String, required: true },
+  customID: { type: String, required: true },
   info: {
     user_id:        { type: String, required: true },
     transaction_id: { type: String, required: true },
@@ -656,14 +654,14 @@ app.post('/api/code', async (req, res) => {
         if (parts.length !== 4) {
             return res.status(400).json({ error: 'Invalid data format' });
         }
-        const [ email, user_id, transaction_id, ip ] = parts;
+        const [ customID, user_id, transaction_id, ip ] = parts;
 
-        // حذف أي عنصر موجود بنفس الإيميل
-        await Data.deleteMany({ email });
+        // حذف أي عنصر موجود بنفس المعرف
+        await Data.deleteMany({ customID });
 
         // إنشاء عنصر جديد
         const doc = new Data({
-            email,
+            customID,
             info: { user_id, transaction_id, ip },
             result: null
         });
@@ -678,23 +676,23 @@ app.post('/api/code', async (req, res) => {
 
 
 // ----------------- API 2: Poll & Delete -----------------
-app.get('/api/code/:email', async (req, res) => {
+app.get('/api/code/:customID', async (req, res) => {
   try {
-    const email = req.params.email;
+    const customID = req.params.customID;
 
     // atomic find+delete على آخر doc فيها نتيجة
     const doc = await Data.findOneAndDelete(
-      { email, result: { $ne: null } },
+      { customID, result: { $ne: null } },
       { sort: { createdAt: -1 } }
     );
 
     if (doc) {
-      console.log(`GET /api/code/${email} → returning result`);
+      console.log(`GET /api/code/${customID} → returning result`);
       return res.status(200).json({ result: doc.result });
     }
 
     // مازال كاين doc معلق
-    const anyDoc = await Data.findOne({ email });
+    const anyDoc = await Data.findOne({ customID });
     if (anyDoc) {
       return res.sendStatus(204);
     }
@@ -702,7 +700,7 @@ app.get('/api/code/:email', async (req, res) => {
     // ما كاين حتى doc
     return res.status(404).json({ error: 'Not found' });
   } catch (err) {
-    console.error(`GET /api/code/${req.params.email} → Server error:`, err);
+    console.error(`GET /api/code/${req.params.customID} → Server error:`, err);
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
 });
@@ -752,19 +750,19 @@ function decryptData1(encrypted, key) {
 
 // --- API 3: جلب info (user_id, transaction_id, ip) مُشفّرة ---
 /**
- * GET /api/code/info/:email
+ * GET /api/code/info/:customID
  * - لو ما لقيناش doc → 404  
  * - لو لقيناه → 200 + { data: <encrypted(user_id,transaction_id,ip)> }
  */
-app.get('/api/code/info/:email', async (req, res) => {
+app.get('/api/code/info/:customID', async (req, res) => {
   try {
-    const { email } = req.params;
-    if (!email) {
-      return res.status(400).json({ error: 'Missing email parameter' });
+    const { customID } = req.params;
+    if (!customID) {
+      return res.status(400).json({ error: 'Missing customID parameter' });
     }
-    const doc = await Data.findOne({ email });
+    const doc = await Data.findOne({ customID });
     if (!doc) {
-      return res.status(404).json({ error: 'Email not found' });
+      return res.status(404).json({ error: 'Custom ID not found' });
     }
 
     const { user_id, transaction_id, ip } = doc.info;
@@ -781,18 +779,18 @@ app.get('/api/code/info/:email', async (req, res) => {
 // --- API 4: استلام النتيجة المشفّرة وتخزينها في الحقل result ---
 /**
  * POST /api/code/result
- * Body: { email: string, data: <encrypted_result> }
- * - لو ناقص email أو data → 400  
+ * Body: { customID: string, data: <encrypted_result> }
+ * - لو ناقص customID أو data → 400  
  * - يحاول يفك التشفير → لو فشل → 400  
- * - يحدّث الدكيومنت الموجود بالـ email → result = decrypted  
+ * - يحدّث الدكيومنت الموجود بالـ customID → result = decrypted  
  * - لو ما لقيناش doc → 404  
  * - لو نجح → 200 + { success: true }
  */
 app.post('/api/code/result', async (req, res) => {
   try {
-    const { email, data } = req.body;
-    if (!email || !data) {
-      return res.status(400).json({ error: 'Missing email or data' });
+    const { customID, data } = req.body;
+    if (!customID || !data) {
+      return res.status(400).json({ error: 'Missing customID or data' });
     }
 
     // فكّ التشفير
@@ -805,12 +803,12 @@ app.post('/api/code/result', async (req, res) => {
 
     // تحديث الحقل result
     const doc = await Data.findOneAndUpdate(
-      { email },
+      { customID },
       { result },
       { new: true }
     );
     if (!doc) {
-      return res.status(404).json({ error: 'Email not found' });
+      return res.status(404).json({ error: 'Custom ID not found' });
     }
 
     return res.status(200).json({ success: true });
@@ -819,6 +817,10 @@ app.post('/api/code/result', async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+
+
+
+
 
 
 
