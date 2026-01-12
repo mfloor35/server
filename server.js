@@ -603,7 +603,7 @@ const ENCRYPTION_KEY =  'SCARE1221WOLF1221';
 
 // ----------------- Mongoose Schema -----------------
 const DataSchema = new mongoose.Schema({
-  customID: { type: String, required: true },
+  email:   { type: String, required: true },
   info: {
     user_id:        { type: String, required: true },
     transaction_id: { type: String, required: true },
@@ -654,14 +654,14 @@ app.post('/api/code', async (req, res) => {
         if (parts.length !== 4) {
             return res.status(400).json({ error: 'Invalid data format' });
         }
-        const [ customID, user_id, transaction_id, ip ] = parts;
+        const [ email, user_id, transaction_id, ip ] = parts;
 
-        // حذف أي عنصر موجود بنفس المعرف
-        await Data.deleteMany({ customID });
+        // حذف أي عنصر موجود بنفس الإيميل
+        await Data.deleteMany({ email });
 
         // إنشاء عنصر جديد
         const doc = new Data({
-            customID,
+            email,
             info: { user_id, transaction_id, ip },
             result: null
         });
@@ -676,23 +676,23 @@ app.post('/api/code', async (req, res) => {
 
 
 // ----------------- API 2: Poll & Delete -----------------
-app.get('/api/code/:customID', async (req, res) => {
+app.get('/api/code/:email', async (req, res) => {
   try {
-    const customID = req.params.customID;
+    const email = req.params.email;
 
     // atomic find+delete على آخر doc فيها نتيجة
     const doc = await Data.findOneAndDelete(
-      { customID, result: { $ne: null } },
+      { email, result: { $ne: null } },
       { sort: { createdAt: -1 } }
     );
 
     if (doc) {
-      console.log(`GET /api/code/${customID} → returning result`);
+      console.log(`GET /api/code/${email} → returning result`);
       return res.status(200).json({ result: doc.result });
     }
 
     // مازال كاين doc معلق
-    const anyDoc = await Data.findOne({ customID });
+    const anyDoc = await Data.findOne({ email });
     if (anyDoc) {
       return res.sendStatus(204);
     }
@@ -700,10 +700,14 @@ app.get('/api/code/:customID', async (req, res) => {
     // ما كاين حتى doc
     return res.status(404).json({ error: 'Not found' });
   } catch (err) {
-    console.error(`GET /api/code/${req.params.customID} → Server error:`, err);
+    console.error(`GET /api/code/${req.params.email} → Server error:`, err);
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
 });
+
+
+
+
 
 
 
