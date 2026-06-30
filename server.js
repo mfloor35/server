@@ -311,12 +311,20 @@ app.post('/api/authorize', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
+app.get('/api/server-time', (req, res) => {
+  const now = Date.now();
+  const date = new Date(now);
+  res.status(200).json({
+    timestamp: now,
+    iso: date.toISOString(),
+    utc: date.toUTCString(),
+    local: date.toLocaleString(),
+    unix: Math.floor(now / 1000),
+    milliseconds: now % 1000,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    message: 'Server time API is working'
+  });
+});
 
 
 
